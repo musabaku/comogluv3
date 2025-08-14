@@ -70,7 +70,7 @@
                  <h1 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight">
                     Digital Price Catalog
                 </h1>
-                <p class="text-slate-300 mt-1">Browse 600+ Products</p>
+                <p class="text-slate-300 mt-1">Live Prices from Google Sheet</p>
             </div>
         </div>
     </header>
@@ -79,7 +79,7 @@
     <main class="container mx-auto p-4 md:p-8">
         
         <!-- Brand Navigation Buttons -->
-        <nav id="brand-nav" class="bg-white p-4 shadow-md mb-10 rounded-xl sticky top-4 z-10 backdrop-blur-sm bg-white/70">
+        <nav id="brand-nav" class="bg-white p-4 shadow-md mb-10 rounded-xl md:sticky top-4 z-10 backdrop-blur-sm bg-white/70">
             <div id="brand-nav-buttons" class="flex flex-wrap justify-center gap-3">
                 <!-- Brand buttons will be dynamically injected here -->
                 <div class="text-center p-4">Loading Brands...</div>
@@ -88,7 +88,6 @@
 
         <!-- Product Display Section -->
         <section id="product-section">
-            <!-- *** CHANGE: This container will now hold the logo and title *** -->
             <div id="brand-title-container" class="flex items-center mb-8 gap-4">
                 <span class="w-3 h-10 bg-indigo-500 rounded-full"></span>
                 <h2 id="brand-title" class="text-3xl font-bold text-slate-800">
@@ -110,9 +109,36 @@
         // --- Configuration ---
         const googleSheetCsvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTemIQAjyMsEqPPUYaNMIn2rwrEbuqR7NrW9vey_mC1iZmIn7FZlOH7g3Co7bZG5B18BJy7Cjldvs53/pub?gid=0&single=true&output=csv';
 
+        // *** CHANGE: Brand to Logo URL Mapping ***
+        // This object maps brand names directly to their logo URLs.
+        const brandLogoMap = {
+            "BEŞLER": "https://res.cloudinary.com/dnc3itu1c/image/upload/l1.jpg",
+            "MASSIMO": "https://res.cloudinary.com/dnc3itu1c/image/upload/l2.jpg",
+            "EDAY": "https://res.cloudinary.com/dnc3itu1c/image/upload/l3.jpg",
+            "BENORGANIC": "https://res.cloudinary.com/dnc3itu1c/image/upload/l4.jpg",
+            "UĞURLU": "https://res.cloudinary.com/dnc3itu1c/image/upload/l5.jpg",
+            "ÜNALPEYNIR": "https://res.cloudinary.com/dnc3itu1c/image/upload/l6.jpg",
+            "ŞİFALİKÖY": "https://res.cloudinary.com/dnc3itu1c/image/upload/l7.jpg",
+            "HOSANLI": "https://res.cloudinary.com/dnc3itu1c/image/upload/l8.jpg",
+            "ORDU TARIM": "https://res.cloudinary.com/dnc3itu1c/image/upload/l9.jpg",
+            "HAŞİROĞLU": "https://res.cloudinary.com/dnc3itu1c/image/upload/l10.jpg",
+            "TADA": "https://res.cloudinary.com/dnc3itu1c/image/upload/l11.jpg",
+            "TAT": "https://res.cloudinary.com/dnc3itu1c/image/upload/l12.jpg",
+            "TEK LEZET": "https://res.cloudinary.com/dnc3itu1c/image/upload/l13.jpg",
+            "TAHSİLDAROĞLU": "https://res.cloudinary.com/dnc3itu1c/image/upload/l14.jpg",
+            "ERİŞ UN": "https://res.cloudinary.com/dnc3itu1c/image/upload/l15.jpg",
+            "SOSERO": "https://res.cloudinary.com/dnc3itu1c/image/upload/l16.jpg",
+            "YÖRE": "https://res.cloudinary.com/dnc3itu1c/image/upload/l17.jpg",
+            "JUNGLE": "https://res.cloudinary.com/dnc3itu1c/image/upload/l18.jpg",
+            "SMILE": "https://res.cloudinary.com/dnc3itu1c/image/upload/l19.jpg",
+            "AYTAÇ": "https://res.cloudinary.com/dnc3itu1c/image/upload/l20.jpg",
+            "OFÇAY": "https://res.cloudinary.com/dnc3itu1c/image/upload/l21.jpg",
+            "EFOR": "https://res.cloudinary.com/dnc3itu1c/image/upload/l22.jpg",
+            "GÜNDOĞDU": "https://res.cloudinary.com/dnc3itu1c/image/upload/l23.jpg" // Note: Skipping to l32 as per your instruction
+        };
+
         // --- DOM Elements ---
         const brandNavContainer = document.getElementById('brand-nav-buttons');
-        // *** CHANGE: Get the new container for the title and logo ***
         const brandTitleContainer = document.getElementById('brand-title-container');
         const productGrid = document.getElementById('product-grid');
         let catalogData = {};
@@ -120,18 +146,13 @@
 
         /**
          * Parses CSV text into a structured JavaScript object.
-         * The data is grouped by brand.
-         * @param {string} csvText - The raw CSV text from the Google Sheet.
-         * @returns {object} - An object where keys are brand names and values are arrays of products.
          */
         function parseCsvData(csvText) {
             const data = {};
             const seenBrands = new Set();
-            // Split by newline, filter out empty rows
             const rows = csvText.trim().split('\n').filter(row => row.trim() !== '');
             const headers = rows[0].split(',').map(h => h.trim());
             
-            // Find column indices for robustness
             const brandIndex = headers.indexOf('Brand');
             const nameIndex = headers.indexOf('Name');
             const priceIndex = headers.indexOf('Price');
@@ -139,27 +160,19 @@
             const imageIndex = headers.indexOf('ImageURL');
             const idIndex = headers.indexOf('ID');
 
-            // Start from the second row (index 1) to skip headers
             for (let i = 1; i < rows.length; i++) {
                 const rowText = rows[i].trim();
-                
-                // Basic validation to skip malformed rows
                 if (!rowText.includes(',')) continue;
                 
                 const values = rowText.split(',').map(v => v.trim());
                 const brand = values[brandIndex] ? values[brandIndex].trim() : null;
 
-                // If there's no brand, or if the brand is the header text, skip this row entirely.
-                if (!brand || brand.toLowerCase() === 'brand') {
-                    continue; 
-                }
+                if (!brand || brand.toLowerCase() === 'brand') continue;
 
-                // Initialize array for the brand if it's the first time we see it
                 if (!data[brand]) {
                     data[brand] = [];
                 }
                 
-                // Keep track of brand order based on their appearance in the sheet
                 if (!seenBrands.has(brand)) {
                     orderedBrands.push(brand);
                     seenBrands.add(brand);
@@ -177,27 +190,26 @@
         }
         
         /**
-         * Renders the product grid for a selected brand with animations.
-         * @param {string} brand - The name of the brand to display products for.
+         * Renders the product grid for a selected brand.
          */
         function displayProducts(brand) {
-            if (!catalogData[brand]) {
-                console.warn(`Brand "${brand}" not found in catalog data.`);
+            if (!catalogData[brand] || catalogData[brand].length === 0) {
+                console.warn(`Brand "${brand}" not found or has no products.`);
                 productGrid.innerHTML = `<p class="text-center col-span-full">No products found for this brand.</p>`;
                 return;
             }
             
-            // *** CHANGE: Update the brand title section to include the logo ***
-            const logoUrl = "https://i.ibb.co/7d57gNYf/Clean-Shot-14-08-2025-at-2-11-43-2x.png"; // Placeholder logo
+            // *** CHANGE: Get logo URL from the new map ***
+            const brandLogoUrl = brandLogoMap[brand] || "https://placehold.co/100x100/FFFFFF/CCCCCC?text=Logo"; // Fallback logo
+
             brandTitleContainer.innerHTML = `
                 <span class="w-3 h-10 bg-indigo-500 rounded-full"></span>
-                <img src="${logoUrl}" alt="${brand} Logo" class="h-10 w-auto object-contain">
+                <img src="${brandLogoUrl}" alt="${brand} Logo" class="h-10 w-auto object-contain">
                 <h2 class="text-3xl font-bold text-slate-800">${brand}</h2>
             `;
             
-            productGrid.innerHTML = ''; // Clear previous products
+            productGrid.innerHTML = '';
 
-            // Update active state for brand navigation buttons
             document.querySelectorAll('#brand-nav-buttons button').forEach(button => {
                 const isActive = button.dataset.brand === brand;
                 button.className = `px-3 py-2 text-sm font-semibold rounded-full transition-all duration-300 ease-in-out transform hover:scale-105 flex items-center gap-2 ${
@@ -207,7 +219,6 @@
                 }`;
             });
 
-            // --- Generate and inject product cards ---
             const products = catalogData[brand] || [];
             let gridHTML = '';
             products.forEach((product, index) => {
@@ -243,7 +254,7 @@
         }
 
         /**
-         * Initializes the application by fetching data and setting up the UI.
+         * Initializes the application.
          */
         async function initializeApp() {
             try {
@@ -254,18 +265,16 @@
                 const csvText = await response.text();
                 catalogData = parseCsvData(csvText);
                 
-                // --- Populate Brand Navigation ---
-                brandNavContainer.innerHTML = ''; // Clear loading message
+                brandNavContainer.innerHTML = '';
                 if (orderedBrands.length > 0) {
                     orderedBrands.forEach(brand => {
                         const button = document.createElement('button');
-                        // Set a data attribute for easier and more reliable selection
                         button.dataset.brand = brand;
-
-                        // Set initial classes that will be updated by displayProducts
                         button.className = 'px-3 py-2 text-sm font-semibold rounded-full transition-all duration-300 ease-in-out transform hover:scale-105 bg-slate-200 text-slate-700 hover:bg-slate-300 flex items-center gap-2';
                         
-                        const logoUrl = "https://i.ibb.co/7d57gNYf/Clean-Shot-14-08-2025-at-2-11-43-2x.png";
+                        // *** CHANGE: Get logo URL from the new map ***
+                        const logoUrl = brandLogoMap[brand] || "https://placehold.co/100x100/FFFFFF/CCCCCC?text=Logo"; // Fallback logo
+
                         button.innerHTML = `
                             <img src="${logoUrl}" alt="${brand} Logo" class="h-6 w-6 object-contain rounded-full bg-white p-0.5">
                             <span>${brand}</span>
@@ -273,12 +282,9 @@
 
                         button.onclick = () => {
                             displayProducts(brand);
-                            // *** CHANGE: Removed the automatic scroll behavior ***
-                            // document.getElementById('product-section').scrollIntoView({ behavior: 'smooth' });
                         };
                         brandNavContainer.appendChild(button);
                     });
-                     // Display the first brand by default
                     displayProducts(orderedBrands[0]);
                 } else {
                     brandTitleContainer.innerHTML = `<h2 class="text-3xl font-bold text-slate-800">No products found.</h2>`;
@@ -295,7 +301,6 @@
             }
         }
 
-        // Start the application once the DOM is fully loaded
         document.addEventListener('DOMContentLoaded', initializeApp);
     </script>
 </body>
