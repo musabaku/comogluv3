@@ -70,7 +70,7 @@
                  <h1 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight">
                     Digital Price Catalog
                 </h1>
-                <p class="text-slate-300 mt-1">Browse 500+ Products</p>
+                <p class="text-slate-300 mt-1">Live Prices from Google Sheet</p>
             </div>
         </div>
     </header>
@@ -147,7 +147,7 @@
                 const values = rowText.split(',').map(v => v.trim());
                 const brand = values[brandIndex] ? values[brandIndex].trim() : null;
 
-                // *** CHANGE: If there's no brand, or if the brand is the header text, skip this row entirely. ***
+                // If there's no brand, or if the brand is the header text, skip this row entirely.
                 if (!brand || brand.toLowerCase() === 'brand') {
                     continue; 
                 }
@@ -190,8 +190,9 @@
 
             // Update active state for brand navigation buttons
             document.querySelectorAll('#brand-nav-buttons button').forEach(button => {
-                const isActive = button.textContent === brand;
-                button.className = `px-4 py-2 text-sm font-semibold rounded-full transition-all duration-300 ease-in-out transform hover:scale-105 ${
+                // *** CHANGE: Check against the data-brand attribute for robustness ***
+                const isActive = button.dataset.brand === brand;
+                button.className = `px-3 py-2 text-sm font-semibold rounded-full transition-all duration-300 ease-in-out transform hover:scale-105 flex items-center gap-2 ${
                     isActive
                         ? 'bg-indigo-600 text-white shadow-lg'
                         : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
@@ -251,9 +252,19 @@
                 if (orderedBrands.length > 0) {
                     orderedBrands.forEach(brand => {
                         const button = document.createElement('button');
-                        button.textContent = brand;
-                        // Set initial classes (will be updated by displayProducts)
-                        button.className = 'px-4 py-2 text-sm font-semibold rounded-full transition-all duration-300 ease-in-out transform hover:scale-105 bg-slate-200 text-slate-700 hover:bg-slate-300';
+                        // Set a data attribute for easier and more reliable selection
+                        button.dataset.brand = brand;
+
+                        // Set initial classes that will be updated by displayProducts
+                        button.className = 'px-3 py-2 text-sm font-semibold rounded-full transition-all duration-300 ease-in-out transform hover:scale-105 bg-slate-200 text-slate-700 hover:bg-slate-300 flex items-center gap-2';
+                        
+                        // *** CHANGE: Add logo and text using innerHTML for a richer button content ***
+                        const logoUrl = "https://i.ibb.co/7d57gNYf/Clean-Shot-14-08-2025-at-2-11-43-2x.png";
+                        button.innerHTML = `
+                            <img src="${logoUrl}" alt="${brand} Logo" class="h-6 w-6 object-contain rounded-full bg-white p-0.5">
+                            <span>${brand}</span>
+                        `;
+
                         button.onclick = () => {
                             displayProducts(brand);
                             // Scroll to the product section for better UX on mobile
