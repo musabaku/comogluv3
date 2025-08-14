@@ -88,8 +88,9 @@
 
         <!-- Product Display Section -->
         <section id="product-section">
-            <div class="flex items-center mb-8">
-                <span class="w-3 h-10 bg-indigo-500 rounded-full mr-4"></span>
+            <!-- *** CHANGE: This container will now hold the logo and title *** -->
+            <div id="brand-title-container" class="flex items-center mb-8 gap-4">
+                <span class="w-3 h-10 bg-indigo-500 rounded-full"></span>
                 <h2 id="brand-title" class="text-3xl font-bold text-slate-800">
                     Loading...
                 </h2>
@@ -111,7 +112,8 @@
 
         // --- DOM Elements ---
         const brandNavContainer = document.getElementById('brand-nav-buttons');
-        const brandTitle = document.getElementById('brand-title');
+        // *** CHANGE: Get the new container for the title and logo ***
+        const brandTitleContainer = document.getElementById('brand-title-container');
         const productGrid = document.getElementById('product-grid');
         let catalogData = {};
         let orderedBrands = [];
@@ -185,12 +187,18 @@
                 return;
             }
             
-            brandTitle.textContent = brand;
+            // *** CHANGE: Update the brand title section to include the logo ***
+            const logoUrl = "https://i.ibb.co/7d57gNYf/Clean-Shot-14-08-2025-at-2-11-43-2x.png"; // Placeholder logo
+            brandTitleContainer.innerHTML = `
+                <span class="w-3 h-10 bg-indigo-500 rounded-full"></span>
+                <img src="${logoUrl}" alt="${brand} Logo" class="h-10 w-auto object-contain">
+                <h2 class="text-3xl font-bold text-slate-800">${brand}</h2>
+            `;
+            
             productGrid.innerHTML = ''; // Clear previous products
 
             // Update active state for brand navigation buttons
             document.querySelectorAll('#brand-nav-buttons button').forEach(button => {
-                // *** CHANGE: Check against the data-brand attribute for robustness ***
                 const isActive = button.dataset.brand === brand;
                 button.className = `px-3 py-2 text-sm font-semibold rounded-full transition-all duration-300 ease-in-out transform hover:scale-105 flex items-center gap-2 ${
                     isActive
@@ -258,7 +266,6 @@
                         // Set initial classes that will be updated by displayProducts
                         button.className = 'px-3 py-2 text-sm font-semibold rounded-full transition-all duration-300 ease-in-out transform hover:scale-105 bg-slate-200 text-slate-700 hover:bg-slate-300 flex items-center gap-2';
                         
-                        // *** CHANGE: Add logo and text using innerHTML for a richer button content ***
                         const logoUrl = "https://i.ibb.co/7d57gNYf/Clean-Shot-14-08-2025-at-2-11-43-2x.png";
                         button.innerHTML = `
                             <img src="${logoUrl}" alt="${brand} Logo" class="h-6 w-6 object-contain rounded-full bg-white p-0.5">
@@ -275,13 +282,13 @@
                      // Display the first brand by default
                     displayProducts(orderedBrands[0]);
                 } else {
-                    brandTitle.textContent = "No products found."
+                    brandTitleContainer.innerHTML = `<h2 class="text-3xl font-bold text-slate-800">No products found.</h2>`;
                     productGrid.innerHTML = `<p class="text-center col-span-full text-slate-500">The catalog is currently empty. Please add products to the Google Sheet.</p>`;
                 }
 
             } catch (error) {
                 console.error('Failed to initialize app:', error);
-                brandTitle.textContent = "Error Loading Products";
+                brandTitleContainer.innerHTML = `<h2 class="text-3xl font-bold text-red-600">Error Loading Products</h2>`;
                 productGrid.innerHTML = `<div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 col-span-full rounded-r-lg" role="alert">
                                             <p class="font-bold">Failed to load data</p>
                                             <p>${error.message}</p>
